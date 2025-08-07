@@ -1,0 +1,60 @@
+{
+    "profile": [
+      {
+        "dob": 
+        "pan": 
+        "name":
+        "type":
+        "email": 
+        "fipId": 
+        "mobile": 
+        "address": 
+        "nominee": 
+        "landLine": 
+        "account_type": 
+        "linkedAccRef": 
+        "ckycCompliance": 
+        "maskedAccNumber": 
+      }
+    ],
+    "summary": {
+      "type": 
+      "fipId": 
+      "branch": 
+      "status": 
+      "fipName": 
+      "currency": 
+      "facility": 
+      "ifscCode": 
+      "micrCode": 
+      "exchgeRate": 
+      "openingDate": 
+      "account_type": 
+      "drawingLimit": 
+      "linkedAccRef": 
+      "fnrkAccountId": 
+      "currentBalance": 
+      "currentODLimit": 
+      "pending_amount": 
+      "balanceDateTime":
+      "maskedAccNumber":
+      "accountAgeInDays":
+      "pending_transactionType": 
+    },
+    "transactions": [
+      {
+        "mode": 
+        "type":
+        "fipId": 
+        "txnId": 
+        "amount": 
+        "narration": 
+        "reference": 
+        "valueDate": 
+        "account_type": 
+        "linkedAccRef": 
+        "fnrkAccountId": 
+        "currentBalance": 
+        "maskedAccNumber": 
+        "transactionTimestamp":                 },...
+    }

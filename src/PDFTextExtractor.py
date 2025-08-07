@@ -9,14 +9,16 @@ class PDFTextExtractor:
 
     
     def extractor(self):
-        doc=fitz.open(self.pdf_path, filetype="pdf", password=self.password)
-        pages=[]
+        doc = fitz.open(self.pdf_path)
+        if self.password:
+            doc.authenticate(self.password)
+        pages = []
         for i, page in enumerate(doc):
-            text=page.get_text("text")
+            text = page.get_text("text")
             pages.append(
                 {
-                    "page_no":i+1,
-                    "text":text.strip()
+                    "page_no": i + 1,
+                    "text": text.strip()
 
                 }
             )
