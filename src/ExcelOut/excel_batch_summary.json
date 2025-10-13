@@ -1,0 +1,152 @@
+{
+  "processing_info": {
+    "processed_at": "2025-09-13T00:55:01.120525",
+    "input_directory": "C:\\Projects\\Strctured JSON\\src\\ExcelTest",
+    "output_directory": "C:\\Projects\\Strctured JSON\\src\\ExcelOut",
+    "file_type": "excel",
+    "total_files": 5,
+    "successful": 5,
+    "failed": 0
+  },
+  "total_valid_transactions": 622,
+  "results": [
+    {
+      "file": "923010051957390_2.xls",
+      "file_type": "excel",
+      "profile": {
+        "name": "Anurag Sinha",
+        "type": null,
+        "email": "ANXXXXAG@OUTLOOK.COM",
+        "address": "S/O LATE ANANT KUMAR SINHA,VILLA A-17, WOODSONG AROUND THE MANGOES PROJECT,GUNJUR, BENGALURU-560087",
+        "nominee": "registered",
+        "account_type": "loan",
+        "maskedAccNumber": [
+          "923010051957390"
+        ]
+      },
+      "transaction_count": 2,
+      "summary": {
+        "type": null,
+        "fipId": null,
+        "branch": "/ Agri area office for updating your latest / correct mobile number and email ID in our records. You can also update your email ID using Internet Banking & Mobile Banking App, open",
+        "status": null,
+        "currency": null,
+        "ifscCode": "UTIB0004291",
+        "micrCode": "560211129",
+        "account_type": "loan",
+        "maskedAccNumber": "923010051957390"
+      },
+      "json_exported": "C:\\Projects\\Strctured JSON\\src\\ExcelOut\\923010051957390_2_analysis.json"
+    },
+    {
+      "file": "equitas_16.xlsx",
+      "file_type": "excel",
+      "profile": {
+        "name": "Anurag Sinha",
+        "type": null,
+        "email": "sinha.anurag@gmail.com",
+        "address": "Address S/O Late Anant Kumar Sinha Villa",
+        "nominee": "not_applicable",
+        "account_type": "savings",
+        "maskedAccNumber": [
+          "100050716264"
+        ]
+      },
+      "transaction_count": 16,
+      "summary": {
+        "type": null,
+        "fipId": null,
+        "branch": "/ Account Information",
+        "status": null,
+        "currency": "INR",
+        "ifscCode": "ESFB0003005",
+        "micrCode": null,
+        "account_type": "savings",
+        "maskedAccNumber": "100050716264"
+      },
+      "json_exported": "C:\\Projects\\Strctured JSON\\src\\ExcelOut\\equitas_16_analysis.json"
+    },
+    {
+      "file": "ICICI_523.xls",
+      "file_type": "excel",
+      "profile": {
+        "name": "Anurag Sinha",
+        "type": null,
+        "email": null,
+        "address": null,
+        "nominee": null,
+        "account_type": "current",
+        "maskedAccNumber": [
+          "040901501624"
+        ]
+      },
+      "transaction_count": 523,
+      "summary": {
+        "type": null,
+        "fipId": null,
+        "branch": null,
+        "status": null,
+        "currency": "INR",
+        "ifscCode": "HDFC0000240",
+        "micrCode": null,
+        "account_type": "current",
+        "maskedAccNumber": "040901501624"
+      },
+      "json_exported": "C:\\Projects\\Strctured JSON\\src\\ExcelOut\\ICICI_523_analysis.json"
+    },
+    {
+      "file": "PNB_76.xls",
+      "file_type": "excel",
+      "profile": {
+        "name": "Pushpalata Sinha",
+        "type": null,
+        "email": null,
+        "address": "VILLA A 17 WOODSONG AROUND THE MANGOES, PROJECT GUNJUR ROAD NEXT TO AKUL RESIDENCY, City: BANGALORE, Pin: 560087",
+        "nominee": "ANURAG SINHA",
+        "account_type": "loan",
+        "maskedAccNumber": []
+      },
+      "transaction_count": 76,
+      "summary": {
+        "type": null,
+        "fipId": null,
+        "branch": "Details",
+        "status": null,
+        "currency": null,
+        "ifscCode": "PUNB0241400",
+        "micrCode": "226024011",
+        "account_type": "loan",
+        "maskedAccNumber": null
+      },
+      "json_exported": "C:\\Projects\\Strctured JSON\\src\\ExcelOut\\PNB_76_analysis.json"
+    },
+    {
+      "file": "SBI_5.xls",
+      "file_type": "excel",
+      "profile": {
+        "name": "Mr. ANURAG  SINHA",
+        "type": null,
+        "email": null,
+        "address": "VILLA A-17, WOODSONG AROUND THE MANGOES, PROJECT, GUNJUR ROAD,, KANCHAMARANAHALLI, GUNJUR,BENGALURU-87-560087",
+        "nominee": "registered",
+        "account_type": null,
+        "maskedAccNumber": [
+          "00000020178129647"
+        ]
+      },
+      "transaction_count": 5,
+      "summary": {
+        "type": null,
+        "fipId": null,
+        "branch": "NAL BRANCH",
+        "status": null,
+        "currency": null,
+        "ifscCode": "SBIN0004815",
+        "micrCode": null,
+        "account_type": null,
+        "maskedAccNumber": "00000020178129647"
+      },
+      "json_exported": "C:\\Projects\\Strctured JSON\\src\\ExcelOut\\SBI_5_analysis.json"
+    }
+  ]
+}

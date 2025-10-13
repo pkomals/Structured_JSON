@@ -1,0 +1,65 @@
+{
+  "document_info": {
+    "filename": "923010051957390_2.xls",
+    "file_type": "excel",
+    "processed_at": "2025-09-13T00:55:00.391516",
+    "total_transactions_found": 2,
+    "valid_transactions_count": 2
+  },
+  "profile": {
+    "name": "Anurag Sinha",
+    "type": null,
+    "email": "ANXXXXAG@OUTLOOK.COM",
+    "address": "S/O LATE ANANT KUMAR SINHA,VILLA A-17, WOODSONG AROUND THE MANGOES PROJECT,GUNJUR, BENGALURU-560087",
+    "nominee": "registered",
+    "account_type": "loan",
+    "maskedAccNumber": [
+      "923010051957390"
+    ]
+  },
+  "transactions": [
+    {
+      "mode": "",
+      "type": "credit",
+      "fipId": "",
+      "txnId": "",
+      "amount": 178.0,
+      "narration": "SB:923010051957390:Int.Pd:01-04-2025 to 30-06-2025",
+      "reference": "",
+      "valueDate": "2025-07-01",
+      "account_type": "",
+      "linkedAccRef": "",
+      "fnrkAccountId": "",
+      "currentBalance": 25836.0,
+      "maskedAccNumber": "923010051957390",
+      "transactionTimestamp": ""
+    },
+    {
+      "mode": "",
+      "type": "credit",
+      "fipId": "",
+      "txnId": "",
+      "amount": 100.0,
+      "narration": "NEFT/HDFCH00458051544/ANURAG SINHA/HDFC BANK/0001keepactive",
+      "reference": "",
+      "valueDate": "2025-09-02",
+      "account_type": "",
+      "linkedAccRef": "",
+      "fnrkAccountId": "",
+      "currentBalance": 25936.0,
+      "maskedAccNumber": "923010051957390",
+      "transactionTimestamp": ""
+    }
+  ],
+  "summary": {
+    "type": null,
+    "fipId": null,
+    "branch": "/ Agri area office for updating your latest / correct mobile number and email ID in our records. You can also update your email ID using Internet Banking & Mobile Banking App, open",
+    "status": null,
+    "currency": null,
+    "ifscCode": "UTIB0004291",
+    "micrCode": "560211129",
+    "account_type": "loan",
+    "maskedAccNumber": "923010051957390"
+  }
+}

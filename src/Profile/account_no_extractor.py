@@ -392,14 +392,13 @@ class AccountNumberExtractor:
                 if _looks_like_account(tok):
                     sc = _score(tok, ln, labeled=False)
                     if sc >= 0.72:  # slightly higher bar to avoid noise
-                        candidates.append({"account_number": tok, "confidence": round(min(sc, 0.95), 2), "evidence": "top block heuristic"})
-
+                        candidates.append({"account_number": tok})
         results = _dedupe_keep_best(candidates)
 
         if return_all:
             return results
         # single best for backward-compat
         if not results:
-            return {"account_number": None, "confidence": 0.0, "evidence": None}
+            return {"account_number": None}
         best = results[0]
-        return {"account_number": best["account_number"], "confidence": best["confidence"], "evidence": best["evidence"]}
+        return {"account_number": best["account_number"]}

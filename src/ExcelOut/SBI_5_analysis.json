@@ -1,0 +1,113 @@
+{
+  "document_info": {
+    "filename": "SBI_5.xls",
+    "file_type": "excel",
+    "processed_at": "2025-09-13T00:55:01.115523",
+    "total_transactions_found": 5,
+    "valid_transactions_count": 5
+  },
+  "profile": {
+    "name": "Mr. ANURAG  SINHA",
+    "type": null,
+    "email": null,
+    "address": "VILLA A-17, WOODSONG AROUND THE MANGOES, PROJECT, GUNJUR ROAD,, KANCHAMARANAHALLI, GUNJUR,BENGALURU-87-560087",
+    "nominee": "registered",
+    "account_type": null,
+    "maskedAccNumber": [
+      "00000020178129647"
+    ]
+  },
+  "transactions": [
+    {
+      "mode": "",
+      "type": "credit",
+      "fipId": "",
+      "txnId": "",
+      "amount": 9.0,
+      "narration": "CREDIT INTEREST---",
+      "reference": "",
+      "valueDate": "2024-06-25",
+      "account_type": "",
+      "linkedAccRef": "",
+      "fnrkAccountId": "",
+      "currentBalance": 1267.17,
+      "maskedAccNumber": "00000020178129647",
+      "transactionTimestamp": ""
+    },
+    {
+      "mode": "",
+      "type": "credit",
+      "fipId": "",
+      "txnId": "",
+      "amount": 9.0,
+      "narration": "CREDIT INTEREST---",
+      "reference": "",
+      "valueDate": "2024-09-25",
+      "account_type": "",
+      "linkedAccRef": "",
+      "fnrkAccountId": "",
+      "currentBalance": 1276.17,
+      "maskedAccNumber": "00000020178129647",
+      "transactionTimestamp": ""
+    },
+    {
+      "mode": "",
+      "type": "credit",
+      "fipId": "",
+      "txnId": "",
+      "amount": 9.0,
+      "narration": "CREDIT INTEREST---",
+      "reference": "",
+      "valueDate": "2024-12-25",
+      "account_type": "",
+      "linkedAccRef": "",
+      "fnrkAccountId": "",
+      "currentBalance": 1285.17,
+      "maskedAccNumber": "00000020178129647",
+      "transactionTimestamp": ""
+    },
+    {
+      "mode": "",
+      "type": "credit",
+      "fipId": "",
+      "txnId": "",
+      "amount": 9.0,
+      "narration": "CREDIT INTEREST---",
+      "reference": "",
+      "valueDate": "2025-03-25",
+      "account_type": "",
+      "linkedAccRef": "",
+      "fnrkAccountId": "",
+      "currentBalance": 1294.17,
+      "maskedAccNumber": "00000020178129647",
+      "transactionTimestamp": ""
+    },
+    {
+      "mode": "",
+      "type": "debit",
+      "fipId": "",
+      "txnId": "",
+      "amount": 118.0,
+      "narration": "TO TRANSFER-COMM - OTHER MISC. SERVICES--",
+      "reference": "",
+      "valueDate": "2025-03-28",
+      "account_type": "",
+      "linkedAccRef": "",
+      "fnrkAccountId": "",
+      "currentBalance": 1176.17,
+      "maskedAccNumber": "00000020178129647",
+      "transactionTimestamp": ""
+    }
+  ],
+  "summary": {
+    "type": null,
+    "fipId": null,
+    "branch": "NAL BRANCH",
+    "status": null,
+    "currency": null,
+    "ifscCode": "SBIN0004815",
+    "micrCode": null,
+    "account_type": null,
+    "maskedAccNumber": "00000020178129647"
+  }
+}

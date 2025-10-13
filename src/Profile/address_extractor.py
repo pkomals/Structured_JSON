@@ -1,253 +1,5 @@
-# # src/fields/address_extractor.py
-# from __future__ import annotations
-# from typing import List, Dict, Any, Optional
-# from collections import deque
-# import re
 
-# # --- regexes / signals ------------------------------------------------------
-
-# CITIES_HINT = r"(?:mumbai|delhi|new\s*delhi|bengaluru|bangalore|chennai|kolkata|pune|hyderabad|gurgaon|noida|ahmedabad|jaipur|indore|surat|vadodara|thane|navi\s*mumbai)"
-# PIN_RE = re.compile(r"\b\d{6}\b")
-# COORD_RE = re.compile(r"^\s*\d{1,3}\.\d+\s*,\s*\d{1,3}\.\d+\s*$")  # e.g., 221.0, 0.0
-
-# AMOUNT_RE = re.compile(r"(?:^|[\s:])\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?(?:\s*(?:cr|dr)\.?)?\b", re.I)
-# DATE_RE   = re.compile(r"\b(?:\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4}|[A-Za-z]{3}\s+\d{1,2},?\s+\d{4})\b")
-# CRDR_RE   = re.compile(r"\b(?:cr|dr)\b", re.I)
-
-# # Common transaction / channel codes + merchants that must be excluded
-# TRANS_CODE_RE = re.compile(
-#     r"\b(?:BIL/ONL|NEFT|IMPS|UPI|ACH|NACH|ATM|POS|ECS|RTGS|CHEQ|CHQ|CMS|CDM|CWDR|CWDL|REF|TRF|MMT|IRCTC|INDIGO)\b",
-#     re.I,
-# )
-# MERCHANT_RE = re.compile(r"\b(amazon|flipkart|zomato|swiggy|uber|ola|paytm|phonepe|google\s*pay|gpay|airtel|vodafone|jio)\b", re.I)
-
-# HEADER_RE = re.compile(
-#     r"(statement|account\b(?!\s*holder)|summary|period|balance|branch|ifsc|micr|"
-#     r"page\s+\d+|search|relationship|customer\s*id|cust\s*id|"
-#     r"transactions?\s+list|transaction\s+summary|cheque|remarks|amount|date|from|to|type|payment\s+due|credit\s+limit)",
-#     re.I,
-# )
-
-# ADDRESS_CUES = re.compile(
-#     r"(address|mailing\s*address|communication\s*address|correspondence\s*address|"
-#     r"road|rd\.|street|st\.|lane|ln\.|nagar|complex|chs|vihar|sector|block|phase|layout|"
-#     r"society|apartment|apt\.|tower|villa|project|floor|flat|plot|house|near|opp\.|opposite)",
-#     re.I,
-# )
-
-
-# def clean(s: Optional[str]) -> Optional[str]:
-#     if s is None: 
-#         return None
-#     s = " ".join(s.replace("cid:9", " ").split())
-#     return s or None
-
-# def alpha_ratio(s: str) -> float:
-#     if not s: 
-#         return 0.0
-#     a = sum(ch.isalpha() for ch in s)
-#     return a / max(1, len(s))
-
-# def digit_ratio(s: str) -> float:
-#     if not s:
-#         return 0.0
-#     d = sum(ch.isdigit() for ch in s)
-#     return d / max(1, len(s))
-
-# def is_headerish(s: str) -> bool:
-#     return bool(HEADER_RE.search(s))
-
-# def is_amountish(s: str) -> bool:
-#     return bool(AMOUNT_RE.search(s))
-
-# def is_dateish(s: str) -> bool:
-#     return bool(DATE_RE.search(s))
-
-# def is_transactionish(s: str) -> bool:
-#     # heavy filters for lines like "BIL/ONL/..., UPI/..., ... Cr"
-#     if TRANS_CODE_RE.search(s) or MERCHANT_RE.search(s) or CRDR_RE.search(s):
-#         return True
-#     if s.count("/") >= 2:
-#         return True
-#     return False
-
-# def likely_address_line(s: str) -> bool:
-#     s = s.strip()
-#     if not s:
-#         return False
-#     if COORD_RE.match(s):            # e.g., "221.0, 0.0"
-#         return False
-#     if is_headerish(s) or is_amountish(s) or is_dateish(s) or is_transactionish(s):
-#         return False
-#     # Require address cues OR (city/pin + reasonable text)
-#     cues = ADDRESS_CUES.search(s) or re.search(CITIES_HINT, s, re.I) or PIN_RE.search(s)
-#     if not cues:
-#         return False
-#     # Avoid lines dominated by digits/symbols
-#     if digit_ratio(s) > 0.4 and not PIN_RE.search(s):
-#         return False
-#     if alpha_ratio(s) < 0.35:
-#         return False
-#     return True
-
-# def cut_after_pin(text: str) -> str:
-#     """
-#     Truncate at first PIN, then strip any trailing codes like '/Cr', '/Dr', amounts, etc.
-#     """
-#     if not text:
-#         return text
-#     m = PIN_RE.search(text)
-#     if m:
-#         text = text[: m.end()]
-#     # strip trailing punctuation and obvious code tails
-#     text = re.sub(r"[,\s;:/\-]+$", "", text)
-#     return text
-
-# def is_pin_only(text: str) -> bool:
-#     t = (text or "").strip()
-#     return bool(PIN_RE.fullmatch(t)) or (t.isdigit() and len(t) == 6)
-
-# def flatten_lines(raw_pages: List[Dict[str, Any]], first_n_pages: int = 2) -> List[str]:
-#     txt = "\n".join(p.get("text", "") or "" for p in raw_pages[:first_n_pages])
-#     return [clean(ln) or "" for ln in txt.splitlines()]
-
-# # ---------------------------------------------------------------------------
-
-# class AddressExtractor:
-#     """
-#     Returns: {'address': str|None, 'confidence': float, 'evidence': str|None}
-#     """
-#     ADDRESS_LABELS = re.compile(r"\b(address|mailing\s*address|communication\s*address|correspondence\s*address)\b", re.I)
-#     STOP_SCAN = re.compile(r"(transactions?\s+list|transaction\s+summary)", re.I)
-
-#     def __init__(self, debug: bool = False):
-#         self.debug = debug
-
-#     # 1) labeled multi-line block
-#     def _labeled_block(self, text: str) -> Optional[str]:
-#         m = self.ADDRESS_LABELS.search(text)
-#         if not m:
-#             return None
-#         start = m.end()
-#         tail = text[start:].splitlines()
-#         buf: list[str] = []
-#         for ln in tail:
-#             s = (ln or "").strip()
-#             if not s: break
-#             if is_headerish(s) or is_amountish(s) or is_dateish(s) or is_transactionish(s):
-#                 break
-#             buf.append(s)
-#             if len(buf) >= 6:
-#                 break
-#         joined = ", ".join(buf)
-#         joined = cut_after_pin(joined)
-#         return joined or None
-
-#     # 2) top-left block with backfill before PIN, only before Transactions section
-#     def _top_left_block(self, lines: List[str]) -> Optional[str]:
-#         buf: list[str] = []
-#         recent = deque(maxlen=3)
-#         started = False
-
-#         for ln in lines[:120]:
-#             if self.STOP_SCAN.search(ln):
-#                 break
-
-#             s = (ln or "").strip()
-#             if not s:
-#                 continue
-
-#             if not (is_headerish(s) or is_amountish(s) or is_dateish(s) or is_transactionish(s)):
-#                 recent.append(s)
-
-#             if not started and likely_address_line(s):
-#                 started = True
-#                 buf.append(s)
-#                 if PIN_RE.search(s):
-#                     pre = [x for x in list(recent)[:-1] if likely_address_line(x)]
-#                     pre = pre[-2:]
-#                     buf = pre + buf
-#                     break
-#                 continue
-
-#             if started:
-#                 if is_headerish(s) or is_amountish(s) or is_dateish(s) or is_transactionish(s):
-#                     break
-#                 if likely_address_line(s):
-#                     buf.append(s)
-#                     if PIN_RE.search(s):
-#                         pre = [x for x in list(recent) if likely_address_line(x) and x not in buf]
-#                         buf = pre[-2:] + buf
-#                         break
-#                 else:
-#                     break
-
-#         if not buf:
-#             return None
-#         joined = ", ".join(buf)
-#         joined = cut_after_pin(joined)
-#         if is_pin_only(joined):
-#             return None
-#         return joined or None
-
-#     # 3) table fallback (right/below cell of Address label)
-#     def _from_tables(self, tables: List[Dict[str, Any]] | None) -> Optional[str]:
-#         if not tables:
-#             return None
-#         for tbl in tables[:3]:
-#             rows = tbl.get("rows", [])
-#             # right-cell
-#             for row in rows:
-#                 for i, cell in enumerate(row):
-#                     if not isinstance(cell, str):
-#                         continue
-#                     if self.ADDRESS_LABELS.search(cell):
-#                         if i + 1 < len(row) and isinstance(row[i + 1], str):
-#                             cand = clean(row[i + 1]) or ""
-#                             if likely_address_line(cand):
-#                                 return cut_after_pin(cand) or None
-#             # below-cell
-#             for ri in range(len(rows) - 1):
-#                 row = rows[ri]
-#                 for ci, cell in enumerate(row):
-#                     if isinstance(cell, str) and self.ADDRESS_LABELS.search(cell):
-#                         below = rows[ri + 1][ci] if ci < len(rows[ri + 1]) else None
-#                         if isinstance(below, str) and likely_address_line(below):
-#                             return cut_after_pin(below) or None
-#         return None
-
-#     # public
-#     def extract(
-#         self,
-#         raw_pages: List[Dict[str, Any]],
-#         tables: List[Dict[str, Any]] | None = None,
-#         first_n_pages: int = 2,
-#     ) -> Dict[str, Any]:
-#         text = "\n".join(p.get("text", "") or "" for p in raw_pages[:first_n_pages])
-#         lines = flatten_lines(raw_pages, first_n_pages=first_n_pages)
-
-#         # 1) Labeled block
-#         addr = self._labeled_block(text)
-#         if addr and not is_pin_only(addr):
-#             if self.debug: print("[address] via labeled block ->", addr)
-#             return {"address": addr, "confidence": 0.92, "evidence": "labeled block"}
-
-#         # 2) Top-left block (before transactions)
-#         addr = self._top_left_block(lines)
-#         if addr and not is_pin_only(addr):
-#             if self.debug: print("[address] via top-left block ->", addr)
-#             return {"address": addr, "confidence": 0.82, "evidence": "top-left block"}
-
-#         # 3) Tables
-#         addr = self._from_tables(tables)
-#         if addr and not is_pin_only(addr):
-#             if self.debug: print("[address] via tables ->", addr)
-#             return {"address": addr, "confidence": 0.70, "evidence": "table right/below cell"}
-
-#         if self.debug: print("[address] not found")
-#         return {"address": None, "confidence": 0.0, "evidence": None}
-
-# src/fields/address_extractor.py
+# src/Profile/address_extractor.py
 from __future__ import annotations
 from typing import List, Dict, Any, Optional
 from collections import deque
@@ -410,8 +162,102 @@ class AddressExtractor:
         return False
 
     # 1) labeled multi-line block with improved context awareness
+    # def _labeled_block(self, text: str) -> Optional[str]:
+    #     # First try to find customer-specific address labels
+    #     m = self.CUSTOMER_LABELS.search(text)
+    #     if m:
+    #         start = m.end()
+    #         tail = text[start:].splitlines()
+    #         buf: list[str] = []
+    #         for ln in tail:
+    #             s = (ln or "").strip()
+    #             if not s: break
+    #             if is_headerish(s) or is_amountish(s) or is_dateish(s) or is_transactionish(s):
+    #                 break
+    #             buf.append(s)
+    #             if len(buf) >= 6:
+    #                 break
+    #         joined = ", ".join(buf)
+    #         joined = cut_after_pin(joined)
+    #         if joined and not is_pin_only(joined):
+    #             return joined
+
+    #     # Then try general address labels but with context checking
+    #     for match in self.ADDRESS_LABELS.finditer(text):
+    #         start_pos = match.start()
+    #         end_pos = match.end()
+            
+    #         # Get context around the match
+    #         context_start = max(0, start_pos - 200)
+    #         context_end = min(len(text), end_pos + 100)
+    #         text_before = text[context_start:start_pos]
+    #         text_after = text[end_pos:context_end]
+            
+    #         # Skip if it's likely a bank address
+    #         if self._is_likely_bank_address_context(text_before, text_after):
+    #             continue
+            
+    #         tail = text[end_pos:].splitlines()
+    #         buf: list[str] = []
+    #         for ln in tail:
+    #             s = (ln or "").strip()
+    #             if not s: break
+    #             if is_headerish(s) or is_amountish(s) or is_dateish(s) or is_transactionish(s):
+    #                 break
+    #             # Skip if this line itself seems bank-related
+    #             if is_bank_related(s):
+    #                 break
+    #             buf.append(s)
+    #             if len(buf) >= 6:
+    #                 break
+            
+    #         joined = ", ".join(buf)
+    #         joined = cut_after_pin(joined)
+    #         if joined and not is_pin_only(joined):
+    #             return joined
+                
+    #     return None
+
     def _labeled_block(self, text: str) -> Optional[str]:
-        # First try to find customer-specific address labels
+        #debugging 
+        # print(f"\n=== ADDRESS EXTRACTION DEBUG ===")
+    
+    # Debug the Account Name + Address pattern first
+        addr = self._address_after_account_name(text)
+        if addr:
+            # print(f"Found via Account Name pattern: {addr}")
+            return addr
+        
+        # Debug general address labels
+        for match in self.ADDRESS_LABELS.finditer(text):
+            start_pos = match.start()
+            end_pos = match.end()
+            
+            print(f"Found address label at position {start_pos}-{end_pos}")
+            
+            # Show context around the match
+            context_start = max(0, start_pos - 100)
+            context_end = min(len(text), end_pos + 200)
+            context_text = text[context_start:context_end]
+            # print(f"Context around address label:\n{context_text}")
+            # print("-" * 50)
+            
+            # Get lines after the address label
+            tail = text[end_pos:].splitlines()
+            # print(f"Lines after address label:")
+            for i, ln in enumerate(tail[:10]):  # Show first 10 lines
+                s = (ln or "").strip()
+                # print(f"  Line {i}: '{s}'")
+                if i >= 5:  # Limit output
+                    break
+            # print("-" * 50)
+
+        # NEW: First try the Account Name + Address pattern
+        addr = self._address_after_account_name(text)
+        if addr:
+            return addr
+        
+        # Try customer-specific address labels
         m = self.CUSTOMER_LABELS.search(text)
         if m:
             start = m.end()
@@ -430,14 +276,14 @@ class AddressExtractor:
             if joined and not is_pin_only(joined):
                 return joined
 
-        # Then try general address labels but with context checking
+        # Enhanced general address labels with better context checking
         for match in self.ADDRESS_LABELS.finditer(text):
             start_pos = match.start()
             end_pos = match.end()
             
-            # Get context around the match
-            context_start = max(0, start_pos - 200)
-            context_end = min(len(text), end_pos + 100)
+            # Get more context around the match
+            context_start = max(0, start_pos - 300)  # Increased context window
+            context_end = min(len(text), end_pos + 200)
             text_before = text[context_start:start_pos]
             text_after = text[end_pos:context_end]
             
@@ -445,16 +291,30 @@ class AddressExtractor:
             if self._is_likely_bank_address_context(text_before, text_after):
                 continue
             
+            # NEW: Prioritize if it's clearly a customer address context
+            is_customer_context = self._is_customer_address_context(text_before, text_after)
+            
             tail = text[end_pos:].splitlines()
             buf: list[str] = []
             for ln in tail:
                 s = (ln or "").strip()
-                if not s: break
+                if not s: 
+                    if not is_customer_context:  # Be stricter for non-customer contexts
+                        break
+                    continue
+                
+                # Stop conditions
                 if is_headerish(s) or is_amountish(s) or is_dateish(s) or is_transactionish(s):
                     break
-                # Skip if this line itself seems bank-related
+                
+                # Skip bank-related lines
                 if is_bank_related(s):
                     break
+                    
+                # Stop if we hit branch section
+                if re.search(r'^(branch|ifsc|micr)\s*:', s, re.I):
+                    break
+                
                 buf.append(s)
                 if len(buf) >= 6:
                     break
@@ -462,7 +322,10 @@ class AddressExtractor:
             joined = ", ".join(buf)
             joined = cut_after_pin(joined)
             if joined and not is_pin_only(joined):
-                return joined
+                # If it's customer context, accept it readily
+                # If not, apply stricter validation
+                if is_customer_context or len(joined.strip()) > 20:
+                    return joined
                 
         return None
 
@@ -586,6 +449,8 @@ class AddressExtractor:
         Handle two-column format where customer info is on the left
         and bank info is on the right
         """
+        print(f"DEBUG: Checking two-column format with {len(lines)} lines")
+   
         customer_lines = []
         started_collecting = False
         
@@ -593,6 +458,7 @@ class AddressExtractor:
             s = line.strip()
             if not s:
                 continue
+            # print(f"  Line {i}: '{s}'")
                 
             # Look for customer name as start indicator
             if ((re.search(r"^[A-Z][a-z]+\s+[A-Z][a-z]+$", s) and not is_bank_related(s)) or  
@@ -631,6 +497,115 @@ class AddressExtractor:
                 return joined
                 
         return None
+    # Patch
+    def _is_customer_address_context(self, text_before: str, text_after: str) -> bool:
+        """
+        Check if the address label appears in a customer address context
+        by looking at surrounding text for customer indicators
+        """
+        context = (text_before + " " + text_after).lower()
+        
+        # Strong customer indicators
+        customer_indicators = [
+            r'\bcust\s*id\b', r'\bcustomer\s*id\b', 
+            r'\baccount\s*name\b', r'\baccount\s*holder\b',
+            r'\bkyc\s*id\b', r'\baadhar\b',
+            r'\bmobile\s*no\b', r'\bphone\b',
+            r'\bname\s*&\s*address\b'
+        ]
+        
+        for indicator in customer_indicators:
+            if re.search(indicator, context, re.I):
+                return True
+        
+        # Check if preceded by account name or customer name
+        if re.search(r'(account\s*name|name)\s*:.*?address\s*:', context, re.I):
+            return True
+            
+        return False
+
+    # def _extract_address_after_account_name(self, text: str) -> Optional[str]:
+    #     """
+    #     Look for address that appears after 'Account Name' pattern
+        
+    #     """
+    #     # Look for Account Name followed by Address pattern
+    #     pattern = r'account\s*name\s*:.*?address\s*:(.*?)(?=\n\s*(?:branch|ifsc|micr|statement|transaction)|$)'
+        
+    #     match = re.search(pattern, text, re.I | re.DOTALL)
+    #     if match:
+    #         address_text = match.group(1).strip()
+            
+    #         # Clean up the address text
+    #         lines = [line.strip() for line in address_text.split('\n') if line.strip()]
+    #         valid_lines = []
+            
+    #         for line in lines:
+    #             # Stop at bank-related info
+    #             if is_bank_related(line) or re.search(r'^(branch|ifsc|micr)', line, re.I):
+    #                 break
+    #             # Skip financial years and transaction codes
+    #             if is_financial_year(line) or is_transactionish(line):
+    #                 continue
+    #             # Add valid address lines
+    #             if likely_address_line(line) or re.search(r'^[A-Z0-9][A-Z0-9\s\-,./]+$', line):
+    #                 valid_lines.append(line)
+            
+    #         if valid_lines:
+    #             joined = ", ".join(valid_lines)
+    #             joined = cut_after_pin(joined)
+    #             if not is_pin_only(joined) and len(joined.strip()) > 10:
+    #                 return joined
+        
+    #     return None
+
+    def _address_after_account_name(self, lines: List[str]) -> Optional[str]:
+        """
+        Simple pattern: look for "Account Name" followed by "Address" within a few lines
+        """
+        for i, line in enumerate(lines[:20]):  # Check first 20 lines only
+            line_lower = line.lower().strip()
+            
+            # Found "Account Name" line
+            if 'account name' in line_lower and ':' in line_lower:
+                # Look for "Address :" in the next few lines
+                for j in range(i + 1, min(i + 5, len(lines))):
+                    next_line = lines[j].strip()
+                    next_line_lower = next_line.lower()
+                    
+                    if 'address' in next_line_lower and ':' in next_line_lower:
+                        # Found the address line, extract everything after the colon
+                        if ':' in next_line:
+                            address_start = next_line.split(':', 1)[1].strip()
+                            address_parts = [address_start] if address_start else []
+                            
+                            # Continue collecting address lines until we hit something else
+                            for k in range(j + 1, min(j + 10, len(lines))):
+                                addr_line = lines[k].strip()
+                                if not addr_line:
+                                    continue
+                                
+                                # Stop if we hit date, account, or bank info
+                                addr_line_lower = addr_line.lower()
+                                if any(word in addr_line_lower for word in ['date :', 'account number', 'branch :', 'ifsc', 'micr']):
+                                    break
+                                
+                                # Add this line to address if it looks like address content
+                                if (likely_address_line(addr_line) or 
+                                    re.search(r'^[A-Z0-9][A-Z0-9\s\-,./]+$', addr_line) or
+                                    PIN_RE.search(addr_line)):
+                                    address_parts.append(addr_line)
+                                
+                                # Stop after pin code
+                                if PIN_RE.search(addr_line):
+                                    break
+                            
+                            if address_parts:
+                                joined = ", ".join(address_parts)
+                                joined = cut_after_pin(joined)
+                                if not is_pin_only(joined) and len(joined.strip()) > 10:
+                                    return joined
+        return None
 
     # public
     def extract(
@@ -641,29 +616,40 @@ class AddressExtractor:
     ) -> Dict[str, Any]:
         text = "\n".join(p.get("text", "") or "" for p in raw_pages[:first_n_pages])
         lines = flatten_lines(raw_pages, first_n_pages=first_n_pages)
+        
+        # print(f"\n=== ADDRESS EXTRACTION METHOD DEBUG ===")
+        # 1) NEW: Address after Account Name pattern (highest priority)
+        addr = self._address_after_account_name(lines)
+        if addr and not is_pin_only(addr):
+            # if self.debug: print(f"[address] via account name + address -> {addr}")
+            return {"address": addr, "confidence": 0.95, "evidence": "address after account name"}
 
         # 1) Two-column format (new method for your specific case)
         addr = self._two_column_format(lines)
         if addr and not is_pin_only(addr):
+            # print(f"[address] via two-column format -> {addr}")
             if self.debug: print("[address] via two-column format ->", addr)
             return {"address": addr, "confidence": 0.88, "evidence": "two-column format"}
 
-        # 2) Enhanced labeled block
-        addr = self._labeled_block(text)
-        if addr and not is_pin_only(addr):
-            if self.debug: print("[address] via labeled block ->", addr)
-            return {"address": addr, "confidence": 0.92, "evidence": "labeled block"}
-
-        # 3) Enhanced top-left block
+        
+        # 2) Enhanced top-left block
         addr = self._top_left_block(lines)
         if addr and not is_pin_only(addr):
+            # print(f"[address] via top-left block -> {addr}")
             if self.debug: print("[address] via top-left block ->", addr)
             return {"address": addr, "confidence": 0.82, "evidence": "top-left block"}
+        
+        # 3) Enhanced labeled block
+        addr = self._labeled_block(text)
+        if addr and not is_pin_only(addr):
+            # print(f"[address] via labeled block -> {addr}")
+            if self.debug: print("[address] via labeled block ->", addr)
+            return {"address": addr, "confidence": 0.92, "evidence": "labeled block"}
 
         # 4) Enhanced tables
         addr = self._from_tables(tables)
         if addr and not is_pin_only(addr):
-            if self.debug: print("[address] via tables ->", addr)
+            # if self.debug: print("[address] via tables ->", addr)
             return {"address": addr, "confidence": 0.70, "evidence": "table right/below cell"}
 
         if self.debug: print("[address] not found")
