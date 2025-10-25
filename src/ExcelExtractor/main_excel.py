@@ -12,7 +12,7 @@ src_dir = current_dir.parent  # up one level to src/
 root_dir = src_dir.parent     # up another level to project root
 sys.path.insert(0, str(root_dir))
 
-# Import your existing extractors
+# Import existing extractors
 from src.Profile.name_extractor import NameExtractor
 from src.Profile.address_extractor import AddressExtractor
 from src.Profile.email_extractor import EmailExtractor
@@ -31,6 +31,7 @@ def process_excel(excel_path: str,
                  name_extractor: NameExtractor,
                  addr_extractor: AddressExtractor,
                  first_n_pages: int = 3,
+                 password: str = None,
                  output_dir: Path = None,
                  debug: bool = False) -> Dict[str, Any]:
     """
@@ -41,7 +42,7 @@ def process_excel(excel_path: str,
         print(f"Processing Excel file: {excel_path}")
         
         # 1) Excel extraction (converts to PDF-compatible format)
-        excel_extractor = ExcelExtractor(excel_path)
+        excel_extractor = ExcelExtractor(excel_path, password=password)
         raw_pages = excel_extractor.extract_text_pages()[:first_n_pages]
         tables = excel_extractor.extract_tables()
         
@@ -182,6 +183,10 @@ def main():
         help="Directory to write JSON files (default: ./output_excel)"
     )
     ap.add_argument(
+        "-p", "--password", default=None,
+        help="Password for encrypted Excel files"
+    )
+    ap.add_argument(
         "--summary", default="excel_batch_summary.json",
         help="Batch summary JSON filename (default: excel_batch_summary.json)"
     )
@@ -227,6 +232,7 @@ def main():
             name_extractor, 
             addr_extractor, 
             first_n_pages=args.pages,
+            password=args.password,
             output_dir=output_dir,
             debug=args.debug
         )

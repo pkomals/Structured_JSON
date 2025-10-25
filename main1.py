@@ -24,6 +24,7 @@ def process_pdf(pdf_path: str,
                 addr_extractor: AddressExtractor,
                 first_n_pages: int = 3,
                 output_dir: Path = None,
+                password: str = None,
                 debug: bool = False) -> Dict[str, Any]:  # Added debug parameter
     """
     Extract text + tables, then run Name & Address extractors.
@@ -31,10 +32,10 @@ def process_pdf(pdf_path: str,
     """
     try:
         # 1) raw text (first N pages) + tables
-        text_extractor = PDFTextExtractor(pdf_path)
+        text_extractor = PDFTextExtractor(pdf_path,password=password)
         raw_pages = text_extractor.extractor()[:first_n_pages]
 
-        table_extractor = PlumberTableExtractor(pdf_path)
+        table_extractor = PlumberTableExtractor(pdf_path,password=password)
         tables = table_extractor.extract_tables()
 
         # 2) run extractors
@@ -164,7 +165,7 @@ def main():
         description="Extract Name + Address + Transactions from all PDFs in a directory."
     )
     ap.add_argument(
-        "-i", "--input_dir", required=True,
+        "-i", "--input", required=True,
         help="Directory containing PDFs"
     )
     ap.add_argument(
@@ -180,19 +181,27 @@ def main():
         help="How many initial pages to scan per PDF (default: 3)"
     )
     ap.add_argument(
+        "-p", "--password", default=None,
+        help="Password for encrypted PDF files"
+    )
+    ap.add_argument(
         "--debug", action="store_true",
         help="Enable extractor debug prints"
     )
     args = ap.parse_args()
 
-    input_dir = Path(args.input_dir).expanduser().resolve()
+    input_path = Path(args.input).expanduser().resolve()
     output_dir = Path(args.output_dir).expanduser().resolve()
     
     # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    if not input_dir.exists() or not input_dir.is_dir():
-        print(f"Not a directory: {input_dir}")
+    # if not input_dir.exists() or not input_dir.is_dir():
+    #     print(f"Not a directory: {input_dir}")
+    #     sys.exit(1)
+
+    if not input_path.exists():
+        print(f"Path does not exist: {input_path}")
         sys.exit(1)
 
     # Instantiate extractors (debug flag passes through)
@@ -200,12 +209,34 @@ def main():
     addr_extractor = AddressExtractor(debug=args.debug)
 
     results = []
-    pdfs = sorted(p for p in input_dir.iterdir() if p.suffix.lower() == ".pdf")
-    if not pdfs:
-        print("No PDFs found.")
+    # pdfs = sorted(p for p in input_path.iterdir() if p.suffix.lower() == ".pdf")
+    # if not pdfs:
+    #     print("No PDFs found.")
+    #     sys.exit(1)
+    if input_path.is_file():
+        # Single file mode
+        if input_path.suffix.lower() != ".pdf":
+            print(f"Not a PDF file: {input_path}")
+            sys.exit(1)
+        
+        pdfs = [input_path]
+        print(f"Processing single PDF: {input_path.name}")
+    
+    elif input_path.is_dir():
+        # Directory mode (existing logic)
+        pdfs = sorted(p for p in input_path.iterdir() if p.suffix.lower() == ".pdf")
+        
+        if not pdfs:
+            print("No PDFs found.")
+            sys.exit(1)
+        
+        print(f"Processing {len(pdfs)} PDFs from: {input_path}")
+    
+    else:
+        print(f"Invalid path: {input_path}")
         sys.exit(1)
 
-    print(f"Processing {len(pdfs)} PDFs from: {input_dir}")
+    print(f"Processing {len(pdfs)} PDFs from: {input_path}")
     print(f"Output directory: {output_dir}")
     
     for pdf in pdfs:
@@ -214,6 +245,7 @@ def main():
             str(pdf), 
             name_extractor, 
             addr_extractor, 
+            password=args.password, 
             first_n_pages=args.pages,
             output_dir=output_dir,
             debug=args.debug  # Pass debug parameter
@@ -259,7 +291,7 @@ def main():
     batch_summary = {
         "processing_info": {
             "processed_at": datetime.now().isoformat(),
-            "input_directory": str(input_dir),
+            "input_directory": str(input_path),
             "output_directory": str(output_dir),
             "total_pdfs": len(pdfs),
             "successful": success_count,
